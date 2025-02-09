@@ -14,8 +14,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    try {
       const FORM_URL = MAILCHIMP_FORM_URL;
 
       if(!FORM_URL) {
@@ -48,14 +46,8 @@ export async function POST(request: NextRequest) {
       );
     } catch (error) {
       return NextResponse.json(
-        { error: 'There was an error subscribing to the newsletter.' },
+        { error: `There was an error subscribing to the newsletter. ${JSON.stringify(error)}` },
         { status: 500 }
       );
     }
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'There was an error subscribing to the newsletter.' },
-      { status: 500 }
-    );
-  }
 }
