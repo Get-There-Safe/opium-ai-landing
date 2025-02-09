@@ -19,7 +19,7 @@ const LandingPage = () => {
   
     // Send the email to the backend
     try {
-      const response = await fetch('http://localhost:5001/subscribe', {
+      const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
