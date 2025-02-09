@@ -1,9 +1,10 @@
 // app/api/subscribe/route.js
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 const MAILCHIMP_FORM_URL = process.env.NEXT_PUBLIC_MAILCHIMP_FORM_URL;
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();
 
@@ -16,6 +17,10 @@ export async function POST(request) {
 
     try {
       const FORM_URL = MAILCHIMP_FORM_URL;
+
+      if(!FORM_URL) {
+        throw new Error('Form URL Key Missing')
+      }
 
       const data = {
         email_address: email,
