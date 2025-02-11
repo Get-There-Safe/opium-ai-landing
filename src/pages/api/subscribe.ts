@@ -27,11 +27,11 @@ export default async function handler(
     const LIST_ID = 'fdb22433db';
     
     // You'll need to add this to your environment variables
-    // const API_KEY = process.env.MAILCHIMP_API_KEY;
+    const API_KEY = process.env.MAILCHIMP_API_KEY;
 
-    // if (!API_KEY) {
-    //   throw new Error('MAILCHIMP_API_KEY is not set');
-    // }
+    if (!API_KEY) {
+      throw new Error('MAILCHIMP_API_KEY is not set');
+    }
 
     console.log('Attempting to subscribe:', email);
 
@@ -40,7 +40,7 @@ export default async function handler(
       {
         method: 'PUT', // Using PUT for upsert
         headers: {
-          'Authorization': `apikey 3cb5255711416f4d3000d745c9c7e07d-us9`,
+          'Authorization': `apikey ${API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
