@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-      const FORM_URL = MAILCHIMP_FORM_URL;
+      const FORM_URL = "https://gmail.us9.list-manage.com/subscribe/post?u=c02fd1fa78b04cfac7318bf05&amp;id=fdb22433db&amp;f_id=00dadce1f0";
 
       if(!FORM_URL) {
         throw new Error('Form URL Key Missing')
