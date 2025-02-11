@@ -24,20 +24,34 @@ export default async function handler(
       'b_c02fd1fa78b04cfac7318bf05_fdb22433db': '', // Anti-bot field (must be empty)
     });
 
+    console.log('Attempting to subscribe with data:', formData.toString());
+
     const response = await fetch('https://gmail.us9.list-manage.com/subscribe/post', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': '*/*',
       },
+      redirect: 'follow',
       body: formData.toString(),
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+
     // Check if the subscription was successful
     if (!response.ok) {
-      return res.status(400).json({ error: 'Failed to subscribe' });
+      const errorText = await response.text();
+      console.error('Subscription failed:', errorText);
+      return res.status(400).json({ 
+        error: 'Failed to subscribe',
+        details: errorText
+      });
     }
 
     const text = await response.text();
+    console.log('Response text:', text);
+
     if (text.includes('already subscribed')) {
       return res.status(400).json({ error: 'Email already subscribed' });
     }
@@ -45,6 +59,9 @@ export default async function handler(
     return res.status(201).json({ success: true });
   } catch (error) {
     console.error('Subscription error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 }
