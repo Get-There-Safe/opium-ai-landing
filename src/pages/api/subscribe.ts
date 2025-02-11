@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import crypto from 'crypto';
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,45 +16,49 @@ export default async function handler(
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    // Create form data with the extracted parameters
-    const formData = new URLSearchParams({
-      'u': 'c02fd1fa78b04cfac7318bf05',
-      'id': 'fdb22433db',
-      'f_id': '00dadce1f0',
-      'EMAIL': email,
-      'b_c02fd1fa78b04cfac7318bf05_fdb22433db': '', // Anti-bot field (must be empty)
-    });
+    // Generate subscriber hash for idempotency
+    const subscriberHash = crypto
+      .createHash('md5')
+      .update(email.toLowerCase())
+      .digest('hex');
 
-    console.log('Attempting to subscribe with data:', formData.toString());
+    // Your Mailchimp datacenter is 'us9' based on your URL
+    const DC = 'us9';
+    const LIST_ID = 'fdb22433db';
+    
+    // You'll need to add this to your environment variables
+    // const API_KEY = process.env.MAILCHIMP_API_KEY;
 
-    const response = await fetch('https://gmail.us9.list-manage.com/subscribe/post', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': '*/*',
-      },
-      redirect: 'follow',
-      body: formData.toString(),
-    });
+    // if (!API_KEY) {
+    //   throw new Error('MAILCHIMP_API_KEY is not set');
+    // }
 
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
+    console.log('Attempting to subscribe:', email);
 
-    // Check if the subscription was successful
+    const response = await fetch(
+      `https://${DC}.api.mailchimp.com/3.0/lists/${LIST_ID}/members/${subscriberHash}`,
+      {
+        method: 'PUT', // Using PUT for upsert
+        headers: {
+          'Authorization': `apikey 3cb5255711416f4d3000d745c9c7e07d-us9`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email_address: email,
+          status_if_new: 'subscribed',
+          status: 'subscribed'
+        }),
+      }
+    );
+
+    const data = await response.json();
+    console.log('Mailchimp API response:', data);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Subscription failed:', errorText);
       return res.status(400).json({ 
         error: 'Failed to subscribe',
-        details: errorText
+        details: data.detail || 'Unknown error'
       });
-    }
-
-    const text = await response.text();
-    console.log('Response text:', text);
-
-    if (text.includes('already subscribed')) {
-      return res.status(400).json({ error: 'Email already subscribed' });
     }
 
     return res.status(201).json({ success: true });
